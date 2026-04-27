@@ -1,46 +1,67 @@
 // src/hooks/useTestimonios.js
 import { useState, useEffect, useRef, useCallback } from 'react';
  
-const AUTOPLAY_MS  = 5000;
-const RESUME_MS    = 8000;
+const AUTOPLAY_MS = 5000;
+const RESUME_MS   = 8000;
+const TICK_MS     = 50;
  
 export function useTestimonios(length) {
   const [index,     setIndex]     = useState(0);
   const [direction, setDirection] = useState('next');
   const [paused,    setPaused]    = useState(false);
-  const timerRef = useRef(null);
+  const [progress,  setProgress]  = useState(0); // 0–100
  
-  const clearTimer = useCallback(() => {
-    clearInterval(timerRef.current);
-    clearTimeout(timerRef.current);
+  const autoplayRef = useRef(null);
+  const tickRef     = useRef(null);
+  const resumeRef   = useRef(null);
+  const startedAt   = useRef(null);
+ 
+  const clearAll = useCallback(() => {
+    clearInterval(autoplayRef.current);
+    clearInterval(tickRef.current);
+    clearTimeout(resumeRef.current);
   }, []);
  
   const startAutoplay = useCallback(() => {
-    clearTimer();
-    timerRef.current = setInterval(() => {
+    clearAll();
+    setProgress(0);
+    startedAt.current = Date.now();
+ 
+    // Tick: refresca la barra cada TICK_MS ms
+    tickRef.current = setInterval(() => {
+      const elapsed = Date.now() - startedAt.current;
+      setProgress(Math.min((elapsed / AUTOPLAY_MS) * 100, 100));
+    }, TICK_MS);
+ 
+    // Avance real al llegar a 5 s
+    autoplayRef.current = setTimeout(() => {
       setDirection('next');
       setIndex(i => (i + 1) % length);
     }, AUTOPLAY_MS);
-  }, [length, clearTimer]);
+  }, [length, clearAll]);
  
-  // Arrancar o detener autoplay según estado paused
+  // Arrancar / detener según paused e index
   useEffect(() => {
     if (!paused) startAutoplay();
-    else clearTimer();
-    return clearTimer;
-  }, [paused, startAutoplay, clearTimer]);
+    else {
+      clearAll();
+      setProgress(0);
+    }
+    return clearAll;
+  }, [paused, index, startAutoplay, clearAll]);
  
   /**
-   * go — núcleo de navegación.
-   * Aplica la acción, pausa el autoplay y programa la reanudación.
+   * go — núcleo de navegación manual.
+   * Pausa el autoplay y programa reanudación.
    */
   const go = useCallback((actionFn, dir) => {
     setDirection(dir);
     actionFn();
     setPaused(true);
-    clearTimer();
-    timerRef.current = setTimeout(() => setPaused(false), RESUME_MS);
-  }, [clearTimer]);
+    clearAll();
+    setProgress(0);
+    resumeRef.current = setTimeout(() => setPaused(false), RESUME_MS);
+  }, [clearAll]);
  
   const next = useCallback(
     () => go(() => setIndex(i => (i + 1) % length), 'next'),
@@ -73,5 +94,5 @@ export function useTestimonios(length) {
     return () => window.removeEventListener('keydown', handler);
   }, [next, prev]);
  
-  return { index, direction, next, prev, goTo, random, paused, setPaused };
+  return { index, direction, next, prev, goTo, random, paused, setPaused, progress };
 }

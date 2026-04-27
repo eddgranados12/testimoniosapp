@@ -8,7 +8,7 @@ import './styles.css';
 
 export default function App() {
   const total = testimonios.length;
-  const { index, direction, next, prev, goTo, random, paused, setPaused } =
+  const { index, direction, next, prev, goTo, random, paused, setPaused, progress } =
     useTestimonios(total);
 
   const current = testimonios[index];
@@ -20,6 +20,14 @@ export default function App() {
         <span className="app-label">Lo que dicen de nosotros</span>
         <h1>Testimonios</h1>
       </header>
+
+      {/* Barra de progreso del autoplay */}
+      <div className="autoplay-bar-wrap" aria-hidden="true">
+        <div
+          className={`autoplay-bar-fill${paused ? ' is-paused' : ''}`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
 
       {/* Card wrapper — los ::before/::after de CSS crean el efecto stack 3D */}
       <div className="card-wrapper">

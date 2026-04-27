@@ -383,6 +383,29 @@ h1 {
   letter-spacing: 0.06em;
 }
  
+/* ── Barra de autoplay (entre header y tarjetas) ── */
+.autoplay-bar-wrap {
+  width: 100%;
+  height: 3px;
+  background: var(--teal-soft);
+  border-radius: 3px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+ 
+.autoplay-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--turquoise), var(--coral));
+  border-radius: 3px;
+  transition: width 0.05s linear;
+}
+ 
+.autoplay-bar-fill.is-paused {
+  background: var(--teal-soft);
+  transition: none;
+}
+ 
 /* ── Responsive ─────────────────────────────────── */
 @media (max-width: 480px) {
   body { padding: 36px 16px 56px; }
@@ -390,3 +413,4 @@ h1 {
   .testimonial-card { padding: 28px 20px 24px; }
   .controls button { padding: 8px 14px; font-size: 0.74rem; }
 }
+ 
